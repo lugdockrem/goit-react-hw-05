@@ -1,0 +1,20 @@
+.nav {
+    padding: 20px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .link {
+    text-decoration: none;
+    color: #000;
+    font-size: 18px;
+    margin-right: 20px;
+  }
+  
+  .activeLink {
+    text-decoration: none;
+    color: #ff6b08;
+    font-size: 18px;
+    margin-right: 20px;
+    font-weight: bold;
+  }
