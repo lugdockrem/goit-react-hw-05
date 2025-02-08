@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link, Outlet } from 'react-router-dom';
+import { useState, useEffect, Suspense } from 'react';
+import { useParams, Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { getMovieDetails, getImageUrl } from '../../services/api';
 import styles from './MovieDetailsPage.module.css';
 
 function MovieDetailsPage() {
   const { movieId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [movie, setMovie] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -26,12 +28,20 @@ function MovieDetailsPage() {
     fetchMovieDetails();
   }, [movieId]);
 
+  const handleGoBack = () => {
+    const backPath = location.state?.from || '/movies';
+    navigate(backPath);
+  };
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
   if (!movie) return null;
 
   return (
     <div className={styles.container}>
+      <button onClick={handleGoBack} className={styles.backButton}>
+        Go back
+      </button>
       <div className={styles.movieDetails}>
         <img
           src={getImageUrl(movie.poster_path)}
@@ -48,13 +58,27 @@ function MovieDetailsPage() {
           <div className={styles.additionalInfo}>
             <h2>Additional Information</h2>
             <div className={styles.links}>
-              <Link to="cast" className={styles.link}>Cast</Link>
-              <Link to="reviews" className={styles.link}>Reviews</Link>
+              <Link 
+                to="cast" 
+                state={{ from: location.state?.from }}
+                className={styles.link}
+              >
+                Cast
+              </Link>
+              <Link 
+                to="reviews"
+                state={{ from: location.state?.from }}
+                className={styles.link}
+              >
+                Reviews
+              </Link>
             </div>
           </div>
         </div>
       </div>
-      <Outlet />
+      <Suspense fallback={<div>Loading additional information...</div>}>
+        <Outlet />
+      </Suspense>
     </div>
   );
 }

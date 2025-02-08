@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { searchMovies } from '../../services/api';
 import MovieList from '../../components/MovieList/MovieList';
 import styles from './MoviesPage.module.css';
@@ -8,6 +9,8 @@ function MoviesPage() {
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,6 +21,7 @@ function MoviesPage() {
       setError(null);
       const results = await searchMovies(query);
       setMovies(results);
+      navigate(`/movies?query=${query}`, { replace: true });
     } catch (error) {
       setError('Failed to search movies');
     } finally {
@@ -42,7 +46,12 @@ function MoviesPage() {
 
       {isLoading && <div>Searching...</div>}
       {error && <div className={styles.error}>{error}</div>}
-      {movies.length > 0 && <MovieList movies={movies} />}
+      {movies.length > 0 && (
+        <MovieList 
+          movies={movies} 
+          locationState={{ from: location }}
+        />
+      )}
     </div>
   );
 }

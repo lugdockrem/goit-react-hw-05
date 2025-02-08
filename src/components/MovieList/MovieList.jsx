@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom';
 import { getImageUrl } from '../../services/api';
 import styles from './MovieList.module.css';
-import appStyles from '../../App.module.css'; // Импортируем стили из App.module.css
 
-function MovieList({ movies }) {
+function MovieList({ movies, locationState }) {
   return (
-    <div className={appStyles.container}> {/* Оборачиваем в контейнер */}
     <ul className={styles.movieList}>
       {movies.map((movie) => (
         <li key={movie.id} className={styles.movieItem}>
-          <Link to={`/movies/${movie.id}`} className={styles.movieLink}>
+          <Link 
+            to={`/movies/${movie.id}`}
+            state={locationState}
+            className={styles.movieLink}
+          >
             <img
               src={getImageUrl(movie.poster_path)}
               alt={movie.title}
@@ -21,7 +23,6 @@ function MovieList({ movies }) {
         </li>
       ))}
     </ul>
-    </div>
   );
 }
 
