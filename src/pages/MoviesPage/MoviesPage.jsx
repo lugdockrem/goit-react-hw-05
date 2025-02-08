@@ -1,51 +1,47 @@
-import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { searchMovies } from '../../services/api';
 import MovieList from '../../components/MovieList/MovieList';
+import SearchForm from '../../components/SearchForm/SearchForm';
 import styles from './MoviesPage.module.css';
 
 function MoviesPage() {
-  const [query, setQuery] = useState('');
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
-  const navigate = useNavigate();
+  const query = searchParams.get('query') ?? '';
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+  useEffect(() => {
+    if (!query) return;
 
-    try {
-      setIsLoading(true);
-      setError(null);
-      const results = await searchMovies(query);
-      setMovies(results);
-      navigate(`/movies?query=${query}`, { replace: true });
-    } catch (error) {
-      setError('Failed to search movies');
-    } finally {
-      setIsLoading(false);
-    }
+    const fetchMovies = async () => {
+      try {
+        setIsLoading(true);
+        const results = await searchMovies(query);
+        setMovies(results);
+        if (results.length === 0) {
+          toast.info('No movies found for your search');
+        }
+      } catch (error) {
+        toast.error('Failed to search movies');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, [query]);
+
+  const handleSubmit = (value) => {
+    setSearchParams({ query: value });
   };
 
   return (
     <div className={styles.container}>
-      <form onSubmit={handleSubmit} className={styles.searchForm}>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for movies..."
-          className={styles.searchInput}
-        />
-        <button type="submit" className={styles.searchButton}>
-          Search
-        </button>
-      </form>
-
+      <SearchForm onSubmit={handleSubmit} />
       {isLoading && <div>Searching...</div>}
-      {error && <div className={styles.error}>{error}</div>}
       {movies.length > 0 && (
         <MovieList 
           movies={movies} 

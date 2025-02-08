@@ -1,25 +1,28 @@
-import { useState, useEffect, Suspense } from 'react';
-import { useParams, Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { getMovieDetails, getImageUrl } from '../../services/api';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, Link, Outlet, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { getMovieDetails } from '../../services/api';
 import styles from './MovieDetailsPage.module.css';
+
+const defaultImg = "https://dummyimage.com/400x600/cdcdcd/000.jpg&text=No+poster";
 
 function MovieDetailsPage() {
   const { movieId } = useParams();
-  const navigate = useNavigate();
   const location = useLocation();
+  const backLinkRef = useRef(location.state?.from ?? '/movies');
   const [movie, setMovie] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!movieId) return;
+
     const fetchMovieDetails = async () => {
       try {
         setIsLoading(true);
-        setError(null);
         const movieData = await getMovieDetails(movieId);
         setMovie(movieData);
       } catch (error) {
-        setError('Failed to load movie details');
+        toast.error('Failed to load movie details');
       } finally {
         setIsLoading(false);
       }
@@ -28,25 +31,20 @@ function MovieDetailsPage() {
     fetchMovieDetails();
   }, [movieId]);
 
-  const handleGoBack = () => {
-    const backPath = location.state?.from || '/movies';
-    navigate(backPath);
-  };
-
   if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
   if (!movie) return null;
 
   return (
     <div className={styles.container}>
-      <button onClick={handleGoBack} className={styles.backButton}>
-        Go back
-      </button>
+      <Link to={backLinkRef.current} className={styles.backButton}>
+        ← Go back
+      </Link>
       <div className={styles.movieDetails}>
         <img
-          src={getImageUrl(movie.poster_path)}
+          src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : defaultImg}
           alt={movie.title}
           className={styles.poster}
+          width={250}
         />
         <div className={styles.info}>
           <h1 className={styles.title}>{movie.title}</h1>
@@ -59,15 +57,15 @@ function MovieDetailsPage() {
             <h2>Additional Information</h2>
             <div className={styles.links}>
               <Link 
-                to="cast" 
-                state={{ from: location.state?.from }}
+                to="cast"
+                state={{ from: backLinkRef.current }}
                 className={styles.link}
               >
                 Cast
               </Link>
               <Link 
                 to="reviews"
-                state={{ from: location.state?.from }}
+                state={{ from: backLinkRef.current }}
                 className={styles.link}
               >
                 Reviews
@@ -76,9 +74,7 @@ function MovieDetailsPage() {
           </div>
         </div>
       </div>
-      <Suspense fallback={<div>Loading additional information...</div>}>
-        <Outlet />
-      </Suspense>
+      <Outlet />
     </div>
   );
 }
