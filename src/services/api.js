@@ -70,6 +70,6 @@ export const getMovieReviews = async (movieId) => {
 };
 
 export const getImageUrl = (path) => {
-  if (!path) return 'https://via.placeholder.com/500x750.png?text=No+Image';
+  if (!path) return 'https://dummyimage.com/400x600/cdcdcd/000.jpg&text=No+poster';
   return `https://image.tmdb.org/t/p/w500${path}`;
 };
